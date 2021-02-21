@@ -60,9 +60,7 @@ class DBTModelTestCase(unittest.TestCase):
         self.adapter = adapter
 
     def _adapter_sqlalchemy_conn_string(self):
-        '''
-        'postgresql://scott:tiger@localhost/mydatabase'
-        '''
+        # TODO this needs to be dynamic for all supported dbt databases.
         postgres_conn_string_tmpl = 'postgresql://{user}:{password}@{host}:{port}/{database}'
         if self.adapter.type() == 'postgres':
             return postgres_conn_string_tmpl.format(
