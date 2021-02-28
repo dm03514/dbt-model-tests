@@ -19,23 +19,22 @@
   {% endif %}
 {% endmacro %}
 
-{% macro source(model_name) %}
+{% macro source(source_name, table_name) %}
   {% set dbt_model_test_enabled = env_var('DBT_MODEL_TEST_ENABLED', False) %}
   {% set dbt_model_test_identifier_prefix = env_var('DBT_MODEL_TEST_IDENTIFIER_PREFIX', '') %}
-
-  {{ log("Running custom:source " ~ model_name) }}
+  {{ log("Running custom:source " ~ source_name ~ "." ~ table_name) }}
 
   {% if dbt_model_test_enabled == '1' %}
     {{ log("DBT_MODEL_TEST: model test enabled") }}
-    {% set rel = builtins.source(model_name) %}
+    {% set rel = builtins.source(source_name, table_name) %}
     {%
       set newrel = rel.replace_path(
-        identifier=dbt_model_test_identifier_prefix + model_name
+        identifier=dbt_model_test_identifier_prefix + table_name
       )
     %}
     {% do return(newrel) %}
   {% else %}
     {{ log("DBT_MODEL_TEST: model test disabled") }}
-    {% do return(builtins.source(model_name)) %}
+    {% do return(builtins.source(source_name, table_name)) %}
   {% endif %}
 {% endmacro %}

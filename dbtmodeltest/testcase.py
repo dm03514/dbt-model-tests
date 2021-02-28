@@ -48,7 +48,7 @@ class DBTModelTestCase(unittest.TestCase):
         reset_adapters()
 
         kwargs = {
-            'profile': 'ci',
+            'profile': 'modeltests',
             'profiles_dir': 'conf/',
             'target': None,
         }
@@ -61,8 +61,8 @@ class DBTModelTestCase(unittest.TestCase):
 
     def _adapter_sqlalchemy_conn_string(self):
         # TODO this needs to be dynamic for all supported dbt databases.
-        postgres_conn_string_tmpl = 'postgresql://{user}:{password}@{host}:{port}/{database}'
         if self.adapter.type() == 'postgres':
+            postgres_conn_string_tmpl = 'postgresql://{user}:{password}@{host}:{port}/{database}'
             return postgres_conn_string_tmpl.format(
                 user=self.adapter.config.credentials.user,
                 password=self.adapter.config.credentials.password,
@@ -71,6 +71,10 @@ class DBTModelTestCase(unittest.TestCase):
                 schema=self.adapter.config.credentials.schema,
                 database=self.adapter.config.credentials.database,
             )
+        elif self.adapter.type() == 'snowflake':
+            import ipdb; ipdb.set_trace();
+
+
 
         raise NotImplementedError(
             'Adapter type: {} is not supported by dbtmodel tests'.format(
