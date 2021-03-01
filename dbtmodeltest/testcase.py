@@ -40,6 +40,9 @@ class DBTModelTestCase(unittest.TestCase):
                 conn = self.adapter.connections.get_thread_connection()
                 yield conn
 
+    def conn_url(self):
+        raise NotImplementedError('must implement to return a sqlalchemy connection string')
+
     def setUp(self):
         self.database = os.getenv('DBT_MODEL_TEST_DATABASE')
         self.schema = os.getenv('DBT_MODEL_TEST_SCHEMA')
@@ -71,16 +74,11 @@ class DBTModelTestCase(unittest.TestCase):
                 schema=self.adapter.config.credentials.schema,
                 database=self.adapter.config.credentials.database,
             )
-        elif self.adapter.type() == 'snowflake':
-            import ipdb; ipdb.set_trace();
 
+        return self.conn_url()
 
-
-        raise NotImplementedError(
-            'Adapter type: {} is not supported by dbtmodel tests'.format(
-                self.adapter.type(),
-            )
-        )
+    def fully_qualified_table_name(self, table_name):
+        return table_name
 
     def execute_model_with_refs(self, model, **ref_dfs):
         """
@@ -103,8 +101,13 @@ class DBTModelTestCase(unittest.TestCase):
             for ref_name, ref_df in ref_dfs.items():
                 table_name = self.identifier_prefix + ref_name
                 # drop table and cascade if exists...
-                conn.execute('DROP TABLE {} CASCADE'.format(table_name))
-                print('creating table: {}'.format(table_name))
+                fq_name = self.fully_qualified_table_name(
+                    table_name
+                )
+                conn.execute('DROP TABLE IF EXISTS {} CASCADE'.format(
+                    fq_name
+                ))
+                print('creating table: {}'.format(fq_name))
                 ref_df.to_sql(
                     name=table_name,
                     con=engine,
@@ -119,7 +122,7 @@ class DBTModelTestCase(unittest.TestCase):
             'run',
             '-m', model,
             '--profiles-dir', 'conf/',
-            '--profile', 'ci'
+            '--profile', 'modeltests'
         ]
         resp, success = dbt.handle_and_check(dbt_args)
         self.assertTrue(success)

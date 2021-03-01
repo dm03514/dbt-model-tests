@@ -21,6 +21,8 @@
 
 {% macro source(source_name, table_name) %}
   {% set dbt_model_test_enabled = env_var('DBT_MODEL_TEST_ENABLED', False) %}
+  {% set dbt_model_test_database = env_var('DBT_MODEL_TEST_DATABASE', '') %}
+  {% set dbt_model_test_schema = env_var('DBT_MODEL_TEST_SCHEMA', '') %}
   {% set dbt_model_test_identifier_prefix = env_var('DBT_MODEL_TEST_IDENTIFIER_PREFIX', '') %}
   {{ log("Running custom:source " ~ source_name ~ "." ~ table_name) }}
 
@@ -29,6 +31,8 @@
     {% set rel = builtins.source(source_name, table_name) %}
     {%
       set newrel = rel.replace_path(
+        database=dbt_model_test_database,
+        schema=dbt_model_test_schema,
         identifier=dbt_model_test_identifier_prefix + table_name
       )
     %}
